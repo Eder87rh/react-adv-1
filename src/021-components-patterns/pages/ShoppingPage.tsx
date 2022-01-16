@@ -37,18 +37,35 @@ export const ShoppingPage = () => {
     count: number;
     product: Product;
   }) => {
-    console.log("product count change", count, product);
+    // console.log("product count change", count, product);
 
-    setShoppingCart((oldState) => {
-      if (count === 0) {
-        const { [product.id]: toDelete, ...rest } = oldState;
-        return rest;
+    setShoppingCart((oldShoppingCart) => {
+      const productInCart: IProductInCart = oldShoppingCart[product.id] || {
+        ...product,
+        count: 0,
+      };
+
+      if (Math.max(productInCart.count + count, 0) > 0) {
+        productInCart.count += count;
+        return {
+          ...oldShoppingCart,
+          [product.id]: productInCart,
+        };
       }
 
-      return {
-        ...oldState,
-        [product.id]: { ...product, count },
-      };
+      //Borrar el producto
+      const { [product.id]: toDelete, ...rest } = oldShoppingCart;
+      return rest;
+
+      //   if (count === 0) {
+      //     const { [product.id]: toDelete, ...rest } = oldState;
+      //     return rest;
+      //   }
+
+      //   return {
+      //     ...oldState,
+      //     [product.id]: { ...product, count },
+      //   };
     });
   };
 
@@ -68,6 +85,7 @@ export const ShoppingPage = () => {
             key={product.id}
             product={product}
             className="bg-dark text-white"
+            value={shoppingCart[product.id]?.count || 0}
             onChange={onProductCountChange}
           >
             <ProductImage className="custom-image" />
@@ -78,26 +96,22 @@ export const ShoppingPage = () => {
       </div>
 
       <div className="shopping-cart">
-        <ProductCard
-          product={product2}
-          className="bg-dark text-white"
-          style={{ width: "100px" }}
-        >
-          <ProductImage className="custom-image" />
-          <ProductButtons className="custom-buttons" />
-        </ProductCard>
-        <ProductCard
-          product={product1}
-          className="bg-dark text-white"
-          style={{ width: "100px" }}
-        >
-          <ProductImage className="custom-image" />
-          <ProductButtons className="custom-buttons" />
-        </ProductCard>
-      </div>
-
-      <div>
-        <span>{JSON.stringify(shoppingCart, null, 5)}</span>
+        {Object.entries(shoppingCart).map(([key, product]) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            className="bg-dark text-white"
+            style={{ width: "100px" }}
+            value={product.count}
+            onChange={onProductCountChange}
+          >
+            <ProductImage className="custom-image" />
+            <ProductButtons
+              className="custom-buttons"
+              style={{ display: "flex", justifyContent: "center" }}
+            />
+          </ProductCard>
+        ))}
       </div>
     </div>
   );
